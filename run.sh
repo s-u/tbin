@@ -16,6 +16,8 @@ arch=`uname -m`
 
 echo "::group:: Setup on $os"
 
+export RVER
+
 echo
 echo " System: $os$osver $arch"
 echo
@@ -73,6 +75,7 @@ if [ $os = darwin ]; then
   curl -sSL https://github.com/R-macos/gfortran-for-macOS/releases/download/8.2/gfortran-8.2-Mojave.tar.xz \
    | sudo tar fxz - -C /
   export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:`pwd`/stubs/pkgconfig-darwin:/usr/lib/pkgconfig
+  export PATH=$PATH:/usr/local/gfortran/bin
 else
   export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:/usr/lib/pkgconfig
 fi
@@ -101,7 +104,7 @@ echo "::group:: Configure R-$RVER"
 cd "$BASE/R-build"
 mkdir obj
 cd obj
-../R-devel/configure --enable-R-shilb --prefix=$prefix
+../R-devel/configure --enable-R-shlib --prefix=$prefix
 
 echo '::endgroup::'
 echo "::group:: Build R-$RVER"
@@ -116,8 +119,10 @@ make check
 echo '::endgroup::'
 echo "::group:: Install R-$RVER"
 
-make install rhome=$prefix/R-$VER
+make install rhome=$prefix/R-$RVER
 
 echo '::endgroup::'
+
+$prefix/R-$RVER/bin/R --version
 
 exit 0
