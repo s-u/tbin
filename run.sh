@@ -50,7 +50,7 @@ export PATH=/opt/R/$prefix/bin:$PATH
 if [ $os = linux ]; then
   ## sadly, GNU tar is brain-dead as it can't even figure out compression, need BSD tar
   ## also need Fortran and make sure X11 libs are present (both should be there already)
-  sudo apt-get install -y libarchive-tools libxt-dev gfortran
+  sudo apt-get install -y libarchive-tools libxt-dev gfortran libcurl4-openssl-dev
   sudo mv /usr/bin/tar /usr/bin/gnutar
   sudo ln -s /usr/bin/bsdtar /usr/bin/tar
 fi
