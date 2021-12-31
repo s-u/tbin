@@ -67,13 +67,18 @@ if [ $os = darwin ]; then
   echo "Installing XQuartz ..."
   curl -sSL https://github.com/R-macos/XQuartz/releases/download/XQuartz-2.8.1/XQuartz-2.8.1.tar.xz \
    | sudo tar fxj - -C / && sudo sh /opt/X11/libexec/postinstall
-  export PKG_CONFIG_PATH=/$PREFIX/lib/pkgconfig:$BASE/`pwd`/stubs/pkgconfig-darwin:/usr/lib/pkgconfig:/opt/X11/lib/pkgconfig
+  echo "Installing GNU Fortran ..."
+  curl -sSL https://github.com/R-macos/gfortran-for-macOS/releases/download/8.2/gfortran-8.2-Mojave.tar.xz \
+   | sudo tar fxz - -C /
+  export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:$BASE/`pwd`/stubs/pkgconfig-darwin:/usr/lib/pkgconfig:/opt/X11/lib/pkgconfig
 else
-  export PKG_CONFIG_PATH=/$PREFIX/lib/pkgconfig:/usr/lib/pkgconfig
+  export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:/usr/lib/pkgconfig
 fi
 
+for dir in $prefix/include $prefix/lib; do if [ ! -e $dir ]; then mkdir -p $dir; fi; done
+
 echo "Start recipes build ..."
-NOSUDO=1 PATH=/$PREFIX/bin:$PATH CFLAGS=-I/$PREFIX/include LDFLAGS=-L/$PREFIX/lib make -C build r-base-dev
+NOSUDO=1 PATH=$prefix/bin:$PATH CFLAGS=-I$prefix/include LDFLAGS=-L$prefix/lib make -C build r-base-dev
 
 echo '::endgroup::'
 #echo "::group:: building R-$RVER"
