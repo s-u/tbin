@@ -34,8 +34,8 @@ echo -n "CXX=$CXX: "
 $CXX --version | head -n2
 
 if [ $os = darwin ]; then
-  echo testing only Linux now ...
-  exit 0 
+#  echo testing only Linux now ...
+#  exit 0 
   echo " Removing /usr/local .."
   sudo mkdir /usr/local/.disabled
   sudo mv /usr/local/* /usr/local/.disabled
@@ -72,7 +72,7 @@ if [ $os = darwin ]; then
   echo "Installing GNU Fortran ..."
   curl -sSL https://github.com/R-macos/gfortran-for-macOS/releases/download/8.2/gfortran-8.2-Mojave.tar.xz \
    | sudo tar fxz - -C /
-  export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:$BASE/`pwd`/stubs/pkgconfig-darwin:/usr/lib/pkgconfig
+  export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:`pwd`/stubs/pkgconfig-darwin:/usr/lib/pkgconfig
 else
   export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:/usr/lib/pkgconfig
 fi
@@ -86,7 +86,7 @@ NOSUDO=1 PATH=$prefix/bin:$PATH CFLAGS=-I$prefix/include LDFLAGS=-L$prefix/lib m
 fi
 
 echo '::endgroup::'
-echo "::group:: building R-$RVER"
+echo "::group:: Download R-$RVER"
 
 cd "$BASE"
 mkdir R-build
@@ -95,10 +95,28 @@ curl -sSL https://stat.ethz.ch/R/daily/R-devel.tar.bz2 | tar fxj -
 cd R-devel
 tools/rsync-recommended
 
+echo '::endgroup::'
+echo "::group:: Configure R-$RVER"
+
 cd "$BASE/R-build"
 mkdir obj
 cd obj
-../R-devel/configure --enable-R-shilb --prefix=$prefix && make -j8 && make check
+../R-devel/configure --enable-R-shilb --prefix=$prefix
+
+echo '::endgroup::'
+echo "::group:: Build R-$RVER"
+
+make -j8 
+
+echo '::endgroup::'
+echo "::group:: Check R-$RVER"
+
+make check
+
+echo '::endgroup::'
+echo "::group:: Install R-$RVER"
+
+make install rhome=$prefix/R-$VER
 
 echo '::endgroup::'
 
