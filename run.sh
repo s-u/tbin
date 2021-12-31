@@ -70,18 +70,33 @@ if [ $os = darwin ]; then
   echo "Installing GNU Fortran ..."
   curl -sSL https://github.com/R-macos/gfortran-for-macOS/releases/download/8.2/gfortran-8.2-Mojave.tar.xz \
    | sudo tar fxz - -C /
-  export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:$BASE/`pwd`/stubs/pkgconfig-darwin:/usr/lib/pkgconfig:/opt/X11/lib/pkgconfig
+  export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:$BASE/`pwd`/stubs/pkgconfig-darwin:/usr/lib/pkgconfig
 else
   export PKG_CONFIG_PATH=$prefix/lib/pkgconfig:/usr/lib/pkgconfig
 fi
 
 for dir in $prefix/include $prefix/lib; do if [ ! -e $dir ]; then mkdir -p $dir; fi; done
 
+## Only for Darwin now until we know more about what's missing on Linux
+if [ $os = darwin ]; then
 echo "Start recipes build ..."
 NOSUDO=1 PATH=$prefix/bin:$PATH CFLAGS=-I$prefix/include LDFLAGS=-L$prefix/lib make -C build r-base-dev
+fi
 
 echo '::endgroup::'
-#echo "::group:: building R-$RVER"
-#echo '::endgroup::'
+echo "::group:: building R-$RVER"
+
+cd "$BASE"
+mkdir R-build
+cd R-build
+curl -sSL https://stat.ethz.ch/R/daily/R-devel.tar.bz2 | tar fxj -
+cd R-devel
+tools/rsync-recommended
+
+cd "$BASE/R-build"
+mkdir obj
+../R-devel/configure --enable-R-shilb --prefix=$prefix && make -j8 && make check
+
+echo '::endgroup::'
 
 exit 0
