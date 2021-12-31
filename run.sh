@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 RVER="$1"
 
 if [ -z "$RVER" ]; then
@@ -43,13 +45,20 @@ sudo chown $USER $prefix
 
 export PATH=/opt/R/$prefix/bin:$PATH
 
+if [ $os = linux ]; then
+  ## sadly, GNU tar is brain-dead as it can't even figure out compression, need BSD tar
+  ## also need Fortran and make sure X11 libs are present
+  sudo apt-get install -y libarchive-tools libxt-dev gfortran
+  tar --version
+  bsdtar --version
+fi
 echo '::endgroup::'
 echo "::group:: Building recipes"
 
 git clone https://github.com/R-macos/recipes.git
 
 cd recipes
-PREFIX=`echo $PREFIX | sed 's:^/*::'` NOSUDO=1 perl scripts/mkmk.pl
+PREFIX=`echo $prefix | sed 's:^/*::'` NOSUDO=1 perl scripts/mkmk.pl
 
 ## on macOS add system stubs and XQuartz
 if [ $os = darwin ]; then
@@ -61,7 +70,7 @@ else
   export PKG_CONFIG_PATH=/$PREFIX/lib/pkgconfig:/usr/lib/pkgconfig
 fi
 
-NOSUDO=1 PATH=/$PREFIX/bin:$PATH make -C build r-base-dev
+NOSUDO=1 PATH=/$PREFIX/bin:$PATH CFLAGS=-I/$PREFIX/include LDFLAGS=-L/$PREFIX/lib make -C build r-base-dev
 
 echo '::endgroup::'
 #echo "::group:: building R-$RVER"
