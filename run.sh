@@ -34,6 +34,8 @@ echo -n "CXX=$CXX: "
 $CXX --version | head -n2
 
 if [ $os = darwin ]; then
+  echo testing only Linux now ...
+  exit 0 
   echo " Removing /usr/local .."
   sudo mkdir /usr/local/.disabled
   sudo mv /usr/local/* /usr/local/.disabled
@@ -95,6 +97,7 @@ tools/rsync-recommended
 
 cd "$BASE/R-build"
 mkdir obj
+cd obj
 ../R-devel/configure --enable-R-shilb --prefix=$prefix && make -j8 && make check
 
 echo '::endgroup::'
